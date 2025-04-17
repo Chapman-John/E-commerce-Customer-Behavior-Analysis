@@ -17,6 +17,11 @@ def create_database():
     """Create the database and tables for the e-commerce analysis."""
     conn = sqlite3.connect('ecommerce_data.db')
     cursor = conn.cursor()
+
+    # Drop existing tables if they exist
+    cursor.execute('DROP TABLE IF EXISTS transactions')
+    cursor.execute('DROP TABLE IF EXISTS products')
+    cursor.execute('DROP TABLE IF EXISTS customers')
     
     # Create customers table
     cursor.execute('''
@@ -232,7 +237,8 @@ def perform_customer_segmentation(sql_results):
     # Calculate Recency (days since last purchase)
     purchase_data['last_purchase'] = pd.to_datetime(purchase_data['last_purchase'])
     current_date = datetime.now().date()
-    purchase_data['recency'] = (current_date - purchase_data['last_purchase'].dt.date).dt.days
+    # purchase_data['recency'] = (current_date - purchase_data['last_purchase'].dt.date).dt.days
+    purchase_data['recency'] = purchase_data['last_purchase'].apply(lambda x: (current_date - x.date()).days)
 
     # Extract relevant features for RFM analysis (Recency, Frequency, Monetary)
     rfm_data = purchase_data[['recency', 'num_transactions', 'total_spent']].copy()
